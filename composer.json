@@ -1,0 +1,17 @@
+{
+    "autoload": {
+      "psr-4": {
+        "Inbenta\\": "lib/"
+      }
+    },
+    "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/inbenta-products/api-signature-client-php.git"
+    }],
+    "require": {
+      "inbenta/api-signature-client": "^1.3",
+      "guzzlehttp/guzzle": "^6.2"
+    }
+  }
+  
