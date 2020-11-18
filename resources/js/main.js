@@ -223,7 +223,6 @@ function insertIntoTable(data) {
         'date',
         'sessions_total',
         'sessions_found',
-        'sessions_no_clicks',
         'sessions_not_found',
         'uqs_total',
         'uqs_found',
@@ -245,26 +244,25 @@ function insertIntoTable(data) {
 }
 
 /**
- * Insert totals on the table footer (only when there are more than one inscance selected)
+ * Insert total on the table footer (only when there are more than one inscance selected)
  */
 function insertIntoFooter() {
     var columns = {
         sessions_total: 0,
         sessions_found: 0,
-        sessions_no_clicks: 0,
         sessions_not_found: 0,
         uqs_total: 0,
         uqs_found: 0,
         uqs_without_click: 0,
         uqs_without_answer: 0
     };
-    var totals_info = {
-        totals: columns
+    var total_info = {
+        total: columns
     };
 
     Object.keys(data_collected).forEach(key => {
         Object.keys(columns).forEach(key2 => {
-            columns[key2] += data_collected[key][key2+'_raw'];
+            columns[key2] += isNaN(data_collected[key][key2+'_raw']) ? 0 : data_collected[key][key2+'_raw'];
         });
     });
     var session_total = columns.sessions_total;
@@ -275,25 +273,25 @@ function insertIntoFooter() {
     var row = '<tr>';
     row += '<th colspan="2" class="text-right">'+lang_tags.table_total+' </th>';
     Object.keys(columns).forEach(key => {
-        total_to_process = key.indexOf('uqs') >= 0 ? uqs_total : session_total;
+		total_to_process = key.indexOf('uqs') >= 0 ? uqs_total : session_total;
         if (total_to_process > 0) {
             if (key.indexOf('total') >= 0) {
                 row += '<th class="text-center">100%<br>('+new Intl.NumberFormat('en-US').format(columns[key])+')</th>';
-                totals_info.totals[key] = '100%<br>('+new Intl.NumberFormat('en-US').format(columns[key])+')';
+                total_info.total[key] = '100%<br>('+new Intl.NumberFormat('en-US').format(columns[key])+')';
             }
             else {
                 row += '<th class="text-center">'+((columns[key] * 100) / total_to_process).toFixed(2)+'%<br>('+new Intl.NumberFormat('en-US').format(columns[key])+')</th>';
-                totals_info.totals[key] = ((columns[key] * 100) / total_to_process).toFixed(2)+'%<br>('+new Intl.NumberFormat('en-US').format(columns[key])+')';
+                total_info.total[key] = ((columns[key] * 100) / total_to_process).toFixed(2)+'%<br>('+new Intl.NumberFormat('en-US').format(columns[key])+')';
             }
         }
         else {
             row += '<th></th>';
-            totals_info.totals[key] = '';
+            total_info.total[key] = '';
         }
     });
     row += '</tr>';
     tfooter.innerHTML = row;
-    Object.assign(data_collected, totals_info);
+    Object.assign(data_collected, total_info);
 }
 
 /**

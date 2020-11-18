@@ -14,14 +14,14 @@ use Inbenta\MultiInstanceReporting;
 require __DIR__ . '/vendor/autoload.php';
 
 // Get app config
-$config = include_once __DIR__ . '/config/app.php';
+$config = require_once __DIR__ . '/config/app.php';
 
 $app = new MultiInstanceReporting($config, __DIR__);
 
 $request = isset($_REQUEST['action']) ? $_REQUEST : json_decode(file_get_contents('php://input'), true);
 
 if (isset($request['action'])) {
-    $app->handleRequest($request);
+	$app->handleRequest($request);
 } else {
-    $app->showHome();
+	$app->showHome();
 }
