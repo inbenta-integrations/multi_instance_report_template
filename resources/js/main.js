@@ -1,37 +1,37 @@
 var form;
 var choices;
 var processed = 0;
-var data_collected = {};
-var all_instances = [];
-var all_instances_selected = false;
+var dataCollected = {};
+var allInstances = [];
+var allInstancesSelected = false;
 var lang = '';
-var lang_tags = {};
+var langTags = {};
 
 /**
  * On load window
  * @param {*} e 
  */
 window.onload = function (e) {
-  form = document.querySelector('#form');
-  getLanguage(initialize);
+    form = document.querySelector('#form');
+    getLanguage(initialize);
 };
 
 /**
  * Get language tags
  */
-var getLanguage = function(callback) {
+var getLanguage = function (callback) {
     lang = 'en'; //Set the default lang, in case there is no one configured
-    axios.get('./index.php', {params: {action: 'language'}}).then(function(response) {
+    axios.get('./index.php', { params: { action: 'language' } }).then(function (response) {
         if (response.data !== undefined) {
             if (Object.keys(response.data).length > 0) {
                 lang = response.data.lang;
-                lang_tags = response.data.tags;
-                Object.keys(lang_tags).forEach(key => {
+                langTags = response.data.tags;
+                Object.keys(langTags).forEach(key => {
                     if (key.indexOf('select_') == -1 && key.indexOf('placeholder_') == -1 && key.indexOf('table_') == -1) {
-                        document.getElementById(key).innerHTML = lang_tags[key];
+                        document.getElementById(key).innerHTML = langTags[key];
                     }
                     else if (key.indexOf('placeholder_') >= 0) {
-                        document.getElementById(key.replace('placeholder_', '')).placeholder = lang_tags[key];
+                        document.getElementById(key.replace('placeholder_', '')).placeholder = langTags[key];
                     }
                 });
                 callback();
@@ -39,7 +39,7 @@ var getLanguage = function(callback) {
             }
         }
         callback();
-    }).catch(function() {
+    }).catch(function () {
         callback();
     });
 }
@@ -77,12 +77,12 @@ function setDatePicker(target) {
  * @param {*} callback 
  * @param {*} param 
  */
-var getCalendarLang = function(callback, param) {
+var getCalendarLang = function (callback, param) {
     var script = document.createElement('script');
     script.type = 'text/javascript';
-    script.src = 'https://npmcdn.com/flatpickr/dist/l10n/'+lang+'.js';    
+    script.src = 'https://npmcdn.com/flatpickr/dist/l10n/' + lang + '.js';
     document.getElementsByTagName('head')[0].appendChild(script);
-    setTimeout(function() {
+    setTimeout(function () {
         callback(param);
     }, 300);
 }
@@ -91,7 +91,7 @@ var getCalendarLang = function(callback, param) {
  * Set form events
  */
 function setFormEvents() {
-  form.addEventListener('submit', sendData);
+    form.addEventListener('submit', sendData);
 }
 
 /**
@@ -99,7 +99,7 @@ function setFormEvents() {
  */
 function startSearch() {
     processed = 0;
-    data_collected = {};
+    dataCollected = {};
     document.getElementById("btn_submit").classList.remove("btn-primary");
     document.getElementById("btn_submit").classList.add("btn-secondary");
     document.getElementById("btn_submit").disabled = true;
@@ -111,7 +111,7 @@ function startSearch() {
     tbody.innerHTML = '';
     var tfooter = document.getElementById('data_table_footer');
     tfooter.innerHTML = '';
-    
+
     disableDownload();
 }
 
@@ -156,34 +156,34 @@ function enableDownload() {
  * @param {event} e 
  */
 function sendData(e) {
-  e.preventDefault();
-  
-  var dates = window.flatpickrObject.selectedDates;
-  var instances = choices.getValue(true);
-  var data = {};
-  
-  if (instances.length === 0) {
-    document.getElementById("select-instances").click();
-    return false;
-  }
-  if (dates[0] === undefined || dates[0] === '' || dates[1] === undefined || dates[1] === '') {
-    document.getElementById("date-range").focus();
-    return false;
-  }
-  if (all_instances_selected) {
-    instances = all_instances;
-  }
-  
-  startSearch();
-  for (var i=0; i < instances.length; i++) {
-    data = {
-        action: 'reports',
-        dateFrom: dates[0],
-        dateTo: dates[1],
-        instances: [instances[i]]
-    };
-    getData(data);
-  }
+    e.preventDefault();
+
+    var dates = window.flatpickrObject.selectedDates;
+    var instances = choices.getValue(true);
+    var data = {};
+
+    if (instances.length === 0) {
+        document.getElementById("select-instances").click();
+        return false;
+    }
+    if (dates[0] === undefined || dates[0] === '' || dates[1] === undefined || dates[1] === '') {
+        document.getElementById("date-range").focus();
+        return false;
+    }
+    if (allInstancesSelected) {
+        instances = allInstances;
+    }
+
+    startSearch();
+    for (var i = 0; i < instances.length; i++) {
+        data = {
+            action: 'reports',
+            dateFrom: dates[0],
+            dateTo: dates[1],
+            instances: [instances[i]]
+        };
+        getData(data);
+    }
 }
 
 /**
@@ -192,26 +192,26 @@ function sendData(e) {
  * @param {FormData} data 
  */
 function getData(data) {
-  axios.get('../index.php', { params:data })
-  .then((response) => {
-    if (response.data !== undefined) {
-        document.getElementById("div_table").style.display = "";
-        insertIntoTable(response.data);
-        Object.assign(data_collected, response.data);
-        processed++;
+    axios.get('../index.php', { params: data })
+        .then((response) => {
+            if (response.data !== undefined) {
+                document.getElementById("div_table").style.display = "";
+                insertIntoTable(response.data);
+                Object.assign(dataCollected, response.data);
+                processed++;
 
-        var count_instances = all_instances_selected ? all_instances.length : choices.getValue(true).length;
-        if (processed === count_instances) {
-            endSearch();
-            
-            if (processed > 1) {
-                insertIntoFooter();
+                var countInstances = allInstancesSelected ? allInstances.length : choices.getValue(true).length;
+                if (processed === countInstances) {
+                    endSearch();
+
+                    if (processed > 1) {
+                        insertIntoFooter();
+                    }
+                }
             }
-        }
-    }
-  }, (error) => {
-    console.log(error);
-  });
+        }, (error) => {
+            console.log(error);
+        });
 }
 
 /**
@@ -230,17 +230,17 @@ function insertIntoTable(data) {
         'uqs_without_answer'
     ];
     var tbody = document.getElementById('data_table');
-    var new_row = '<tr>';
-    var class_cell = '';
+    var newRow = '<tr>';
+    var classCell = '';
     Object.keys(data).forEach(key => {
-        new_row += '<td>'+key+'</td>';
-        for (var i=0; i < columns.length; i++) {
-            class_cell = columns[i].indexOf('uqs') >= 0 ? 'userQstnCol' : (columns[i] === 'date' ? '' : ' sessionCol');
-            new_row += '<td class="' + class_cell + '">'+data[key][columns[i]]+'</td>';
+        newRow += '<td>' + key + '</td>';
+        for (var i = 0; i < columns.length; i++) {
+            classCell = columns[i].indexOf('uqs') >= 0 ? 'userQstnCol' : (columns[i] === 'date' ? '' : ' sessionCol');
+            newRow += '<td class="' + classCell + '">' + data[key][columns[i]] + '</td>';
         }
     });
-    new_row += '</tr>';
-    tbody.innerHTML += new_row;
+    newRow += '</tr>';
+    tbody.innerHTML += newRow;
 }
 
 /**
@@ -256,63 +256,63 @@ function insertIntoFooter() {
         uqs_without_click: 0,
         uqs_without_answer: 0
     };
-    var total_info = {
+    var totalInfo = {
         total: columns
     };
 
-    Object.keys(data_collected).forEach(key => {
+    Object.keys(dataCollected).forEach(key => {
         Object.keys(columns).forEach(key2 => {
-            columns[key2] += isNaN(data_collected[key][key2+'_raw']) ? 0 : data_collected[key][key2+'_raw'];
+            columns[key2] += isNaN(dataCollected[key][key2 + '_raw']) ? 0 : dataCollected[key][key2 + '_raw'];
         });
     });
-    var session_total = columns.sessions_total;
-    var uqs_total = columns.uqs_total;
-    var total_to_process = 0;
+    var sessionTotal = columns.sessions_total;
+    var uqsTotal = columns.uqs_total;
+    var totalToProcess = 0;
 
     var tfooter = document.getElementById('data_table_footer');
     var row = '<tr>';
-    row += '<th colspan="2" class="text-right">'+lang_tags.table_total+' </th>';
+    row += '<th colspan="2" class="text-right">' + langTags.table_total + ' </th>';
     Object.keys(columns).forEach(key => {
-		total_to_process = key.indexOf('uqs') >= 0 ? uqs_total : session_total;
-        if (total_to_process > 0) {
+        totalToProcess = key.indexOf('uqs') >= 0 ? uqsTotal : sessionTotal;
+        if (totalToProcess > 0) {
             if (key.indexOf('total') >= 0) {
-                row += '<th class="text-center">100%<br>('+new Intl.NumberFormat('en-US').format(columns[key])+')</th>';
-                total_info.total[key] = '100%<br>('+new Intl.NumberFormat('en-US').format(columns[key])+')';
+                row += '<th class="text-center">100%<br>(' + new Intl.NumberFormat('en-US').format(columns[key]) + ')</th>';
+                totalInfo.total[key] = '100%<br>(' + new Intl.NumberFormat('en-US').format(columns[key]) + ')';
             }
             else {
-                row += '<th class="text-center">'+((columns[key] * 100) / total_to_process).toFixed(2)+'%<br>('+new Intl.NumberFormat('en-US').format(columns[key])+')</th>';
-                total_info.total[key] = ((columns[key] * 100) / total_to_process).toFixed(2)+'%<br>('+new Intl.NumberFormat('en-US').format(columns[key])+')';
+                row += '<th class="text-center">' + ((columns[key] * 100) / totalToProcess).toFixed(2) + '%<br>(' + new Intl.NumberFormat('en-US').format(columns[key]) + ')</th>';
+                totalInfo.total[key] = ((columns[key] * 100) / totalToProcess).toFixed(2) + '%<br>(' + new Intl.NumberFormat('en-US').format(columns[key]) + ')';
             }
         }
         else {
             row += '<th></th>';
-            total_info.total[key] = '';
+            totalInfo.total[key] = '';
         }
     });
     row += '</tr>';
     tfooter.innerHTML = row;
-    Object.assign(data_collected, total_info);
+    Object.assign(dataCollected, totalInfo);
 }
 
 /**
  * Get a list of configured instances
  */
 function getInstances() {
-  axios.get('./index.php', {params: {action: 'instances'}}).then(function(res) {
-    var instances = res.data;
-    all_instances = instances;
-    var dataArray = [];
-    var tag_all_instances = lang_tags.select_all_instances !== undefined ? lang_tags.select_all_instances : 'All instances';
-    dataArray.push({ label: tag_all_instances, value: 'all_instances'});
-    for (var index = 0; index < instances.length; index++) {
-      dataArray.push({ label: instances[index], value: instances[index]}); 
-    }
-    choices = new Choices(document.querySelector('#select-instances'), {
-      choices: dataArray,
-      removeItemButton: true,
-      shouldSort: false,
+    axios.get('./index.php', { params: { action: 'instances' } }).then(function (res) {
+        var instances = res.data;
+        allInstances = instances;
+        var dataArray = [];
+        var tagAllInstances = langTags.select_all_instances !== undefined ? langTags.select_all_instances : 'All instances';
+        dataArray.push({ label: tagAllInstances, value: 'allInstances' });
+        for (var index = 0; index < instances.length; index++) {
+            dataArray.push({ label: instances[index], value: instances[index] });
+        }
+        choices = new Choices(document.querySelector('#select-instances'), {
+            choices: dataArray,
+            removeItemButton: true,
+            shouldSort: false,
+        });
     });
-  });
 }
 
 /**
@@ -324,7 +324,7 @@ function downloadReportXLS() {
 
     var data = {
         action: 'downloadXLS',
-        data: data_collected
+        data: dataCollected
     };
     axios({
         url: '../index.php',
@@ -353,7 +353,7 @@ function downloadReportCSV() {
 
     var data = {
         action: 'downloadCSV',
-        data: data_collected
+        data: dataCollected
     };
     axios({
         url: '../index.php',
@@ -377,15 +377,15 @@ function downloadReportCSV() {
  * @param {Dom element} element 
  */
 function validateSelectedInstances(element) {
-    all_instances_selected = false;
+    allInstancesSelected = false;
     var len = element.options.length;
     if (len > 0) {
         var last = element.options[len - 1].attributes[0].value;
-        if (last === 'all_instances') {
-            all_instances_selected = true;
+        if (last === 'allInstances') {
+            allInstancesSelected = true;
         }
     }
-    if (all_instances_selected) {
+    if (allInstancesSelected) {
         document.getElementById("date-range").focus();
     }
 }
